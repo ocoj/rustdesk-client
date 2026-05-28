@@ -1,0 +1,28 @@
+name: Test Network Connectivity
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test rc.lanxun.pro:30443 (HTTPS)
+        run: |
+          echo "=== Testing rc.lanxun.pro:30443 ==="
+          curl -sv --connect-timeout 15 --max-time 20 https://rc.lanxun.pro:30443/ 2>&1 | grep -E "Connected|SSL|HTTP|error|timeout" || echo "TIMEOUT/FAILED"
+      
+      - name: Test with no SSL verify
+        run: |
+          echo "=== Testing with -k ==="
+          curl -skv --connect-timeout 15 --max-time 20 https://rc.lanxun.pro:30443/ 2>&1 | grep -E "Connected|SSL|HTTP|error|timeout" || echo "TIMEOUT/FAILED"
+
+      - name: Test IP directly
+        run: |
+          echo "=== Testing 8.135.61.103:30443 ==="
+          curl -sk --connect-timeout 15 --max-time 20 https://8.135.61.103:30443/ -o /dev/null -w "HTTP %{http_code} time %{time_total}s\n" || echo "FAILED"
+      
+      - name: DNS resolution
+        run: |
+          echo "=== DNS ==="
+          nslookup rc.lanxun.pro || true
+          dig rc.lanxun.pro +short || true
